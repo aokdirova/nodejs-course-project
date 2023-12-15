@@ -1,0 +1,30 @@
+[
+  {
+    "id": "923456178909234",
+    "title": "A Book",
+    "imageUrl": "https://www.publicdomainpictures.net/pictures/10000/velka/1-1210009435EGmE.jpg",
+    "description": "This is an awesome book!",
+    "price": "19"
+  },
+  {
+    "title": "whatever",
+    "imageUrl": "https://www.google.com/search?newwindow=1&client=firefox-b-d&sca_esv=589207572&q=image+of+a+milk&tbm=isch&source=lnms&sa=X&ved=2ahUKEwjsuMm84ICDAxVH26QKHenMD0UQ0pQJegQICxAB&biw=1728&bih=995&dpr=2#imgrc=RZmLWB2clEpGFM",
+    "description": "milk",
+    "price": "20",
+    "id": 0.3114939913869623
+  },
+  {
+    "title": "Title",
+    "imageUrl": "https://media.istockphoto.com/id/1371529706/vector/milk-paper-pack-glass-milk-carton.jpg?s=612x612&w=0&k=20&c=eIgDfic4-R836n5Nt8govY0EIa1D2b1QZNrmEJnRbzg=",
+    "description": "Milk for baby",
+    "price": "0.98",
+    "id": 0.8806727204845677
+  },
+  {
+    "title": "milk again",
+    "imageUrl": "https://media.istockphoto.com/id/1371529706/vector/milk-paper-pack-glass-milk-carton.jpg?s=612x612&w=0&k=20&c=eIgDfic4-R836n5Nt8govY0EIa1D2b1QZNrmEJnRbzg=",
+    "description": "milk",
+    "price": "3",
+    "id": 0.04019886025160457
+  }
+]
