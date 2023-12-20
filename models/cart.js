@@ -45,6 +45,9 @@ module.exports = class Cart {
       const productToDelete = updatedCart.products.find(
         (prod) => prod.id === id
       );
+      if (!productToDelete) {
+        return;
+      }
       const prodToDeleteQuantity = productToDelete.qty;
       updatedCart.products = updatedCart.products.filter(
         (prod) => prod.id !== id
