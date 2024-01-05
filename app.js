@@ -10,6 +10,8 @@ const Product = require("./models/product");
 const User = require("./models/user");
 const Cart = require("./models/cart");
 const CartItem = require("./models/cart-item");
+const Order = require("./models/order");
+const OrderItem = require("./models/order-item");
 
 const app = express();
 
@@ -38,10 +40,16 @@ app.use(errorController.get404);
 //adding relations in sequelize
 Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
 User.hasMany(Product);
+
 User.hasOne(Cart);
 Cart.belongsTo(User);
+
 Cart.belongsToMany(Product, { through: CartItem }); //one cart can have multiple products
 Product.belongsToMany(Cart, { through: CartItem }); //product can be a part of multiple carts
+
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
 
 sequelize
   // .sync({ force: true })
