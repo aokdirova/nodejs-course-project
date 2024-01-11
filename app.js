@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 
 const errorController = require("./controllers/error");
 
+const mongoose = require("mongoose");
+
 // const sequelize = require("./util/database");
 // const Product = require("./models/product");
 const User = require("./models/user");
@@ -39,40 +41,9 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-mongoConnect(() => {
-  app.listen(3004);
-});
-
-//adding relations in sequelize
-// Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
-// User.hasMany(Product);
-
-// User.hasOne(Cart);
-// Cart.belongsTo(User);
-
-// Cart.belongsToMany(Product, { through: CartItem }); //one cart can have multiple products
-// Product.belongsToMany(Cart, { through: CartItem }); //product can be a part of multiple carts
-
-// Order.belongsTo(User);
-// User.hasMany(Order);
-// Order.belongsToMany(Product, { through: OrderItem });
-
-// sequelize
-//   // .sync({ force: true })
-//   .sync()
-//   .then(() => {
-//     return User.findByPk(1);
-//   })
-//   .then((user) => {
-//     if (!user) {
-//       User.create({ name: "aygul", email: "test@email.com" });
-//     }
-//     return user;
-//   })
-//   .then((user) => {
-//     return user.createCart();
-//   })
-//   .then((cart) => {
-//     app.listen(3000);
-//   })
-//   .catch((err) => console.log(err));
+mongoose
+  .connect(process.env.MONGO_DB_URL)
+  .then((result) => {
+    app.listen(3004);
+  })
+  .catch((err) => console.log(err));
