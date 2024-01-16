@@ -13,14 +13,7 @@ const session = require("express-session");
 
 const MongoDBStore = require("connect-mongodb-session")(session);
 
-// const sequelize = require("./util/database");
-// const Product = require("./models/product");
 const User = require("./mongoose-models/user");
-
-// const Cart = require("./models/cart");
-// const CartItem = require("./models/cart-item");
-// const Order = require("./models/order");
-// const OrderItem = require("./models/order-item");
 
 const app = express();
 const store = new MongoDBStore({
@@ -51,7 +44,7 @@ app.use(
 
 app.use((req, res, next) => {
   if (!req.session.user) {
-    next();
+    return next();
   }
   User.findById(req.session.user._id)
     .then((user) => {
@@ -70,19 +63,7 @@ app.use(errorController.get404);
 
 mongoose
   .connect(process.env.MONGO_DB_URL)
-  .then((result) => {
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          name: "Aygul",
-          email: "test@gmail.com",
-          cart: {
-            items: [],
-          },
-        });
-        user.save();
-      }
-    });
+  .then(() => {
     app.listen(3004);
   })
   .catch((err) => console.log(err));

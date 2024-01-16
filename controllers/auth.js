@@ -25,3 +25,31 @@ exports.postLogout = (req, res, next) => {
     res.redirect("/");
   });
 };
+
+exports.getSignup = (req, res, next) => {
+  res.render("auth/signup", {
+    path: "/signup",
+    pageTitle: "Signup",
+    isLoggedIn: false,
+  });
+};
+
+exports.postSignup = (req, res, next) => {
+  const { email, password, confirmPassword } = req.body;
+  User.findOne({ email: email })
+    .then((userDoc) => {
+      if (userDoc) {
+        return res.redirect("/signup");
+      }
+      const newUser = new User({
+        email: email,
+        password: password,
+        cart: { items: [] },
+      });
+      return newUser.save();
+    })
+    .then(() => {
+      res.redirect("/login");
+    })
+    .catch((err) => console.log(err));
+};
