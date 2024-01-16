@@ -1,4 +1,5 @@
 const User = require("../mongoose-models/user");
+const bcrypt = require("bcryptjs");
 
 exports.getLogin = (req, res, next) => {
   res.render("auth/login", {
@@ -41,15 +42,19 @@ exports.postSignup = (req, res, next) => {
       if (userDoc) {
         return res.redirect("/signup");
       }
-      const newUser = new User({
-        email: email,
-        password: password,
-        cart: { items: [] },
-      });
-      return newUser.save();
-    })
-    .then(() => {
-      res.redirect("/login");
+      return bcrypt
+        .hash(password, 12)
+        .then((hashedPass) => {
+          const newUser = new User({
+            email: email,
+            password: hashedPass,
+            cart: { items: [] },
+          });
+          return newUser.save();
+        })
+        .then(() => {
+          res.redirect("/login");
+        });
     })
     .catch((err) => console.log(err));
 };
