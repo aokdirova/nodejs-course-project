@@ -2,10 +2,11 @@ const User = require("../mongoose-models/user");
 const bcrypt = require("bcryptjs");
 
 exports.getLogin = (req, res, next) => {
+  let errorMesssage = req.flash("emailNotFound");
   res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
-    isLoggedIn: req.session.isLoggedIn,
+    errorMessage: errorMesssage.length > 0 ? errorMesssage[0] : null,
   });
 };
 
@@ -14,6 +15,7 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
+        req.flash("emailNotFound", "Invalid email");
         return res.redirect("/login");
       }
       bcrypt
