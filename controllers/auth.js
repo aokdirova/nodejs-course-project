@@ -1,8 +1,19 @@
 const User = require("../mongoose-models/user");
 const bcrypt = require("bcryptjs");
 
+const nodemailer = require("nodemailer");
+const sendgridTransport = require("nodemailer-sendgrid-transport");
+
+const transporter = nodemailer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: process.env.SENDGRID_API_KEY,
+    },
+  })
+);
+
 exports.getLogin = (req, res, next) => {
-  let errorMesssage = req.flash("emailNotFound");
+  let errorMesssage = req.flash("loginError");
   res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
@@ -15,7 +26,7 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
-        req.flash("emailNotFound", "Invalid email");
+        req.flash("loginError", "Invalid Password or Email");
         return res.redirect("/login");
       }
       bcrypt
@@ -28,6 +39,7 @@ exports.postLogin = (req, res, next) => {
               res.redirect("/");
             });
           }
+          req.flash("loginError", "Invalid Password or Email");
           res.redirect("/login");
         })
         .catch((err) => {
@@ -45,10 +57,12 @@ exports.postLogout = (req, res, next) => {
 };
 
 exports.getSignup = (req, res, next) => {
+  let errorMesssage = req.flash("userExists");
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
     isLoggedIn: false,
+    errorMessage: errorMesssage.length > 0 ? errorMesssage[0] : null,
   });
 };
 
@@ -57,6 +71,7 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then((userDoc) => {
       if (userDoc) {
+        req.flash("userExists", "User with that email already exists");
         return res.redirect("/signup");
       }
       return bcrypt
@@ -71,7 +86,14 @@ exports.postSignup = (req, res, next) => {
         })
         .then(() => {
           res.redirect("/login");
-        });
+          return transporter.sendMail({
+            to: email,
+            from: "shop@node-complete.com",
+            subject: "Sign up successfull",
+            html: "<h1> You signed up for spending money on useless stuff. Congrats! </h1>",
+          });
+        })
+        .catch((err) => console.log("mailing service error", err));
     })
     .catch((err) => console.log(err));
 };
