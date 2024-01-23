@@ -1,6 +1,8 @@
 const User = require("../mongoose-models/user");
 const bcrypt = require("bcryptjs");
 
+const crypto = require("crypto");
+
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 
@@ -96,4 +98,47 @@ exports.postSignup = (req, res, next) => {
         .catch((err) => console.log("mailing service error", err));
     })
     .catch((err) => console.log(err));
+};
+
+exports.getReset = (req, res, next) => {
+  let errorMesssage = req.flash("resetError");
+  res.render("auth/reset", {
+    path: "/reset",
+    pageTitle: "Reset password",
+    errorMessage: errorMesssage.length > 0 ? errorMesssage[0] : null,
+  });
+};
+
+exports.postReset = (req, res, next) => {
+  const { email } = req.body;
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      console.log(err);
+      return res.redirect("/reset");
+    }
+    const token = buffer.toString("hex");
+    User.findOne({ email: email })
+      .then((user) => {
+        if (!user) {
+          req.flash("resetError", "No account with that email found");
+          return res.redirect("/reset");
+        }
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000;
+        return user.save();
+      })
+      .then(() => {
+        res.redirect("/");
+        return transporter.sendMail({
+          to: email,
+          from: "shop@node-complete.com",
+          subject: "Password reset",
+          html: `
+          <p> You requested a password reset </p>
+          <p> Click this <a href="http://localhost:3004/reset/${token}"> link </a>  link to set a new password </p>
+          `,
+        });
+      })
+      .catch((err) => console.log(err));
+  });
 };
