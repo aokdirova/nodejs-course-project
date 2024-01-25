@@ -6,7 +6,8 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const user = require("../mongoose-models/user");
-const { restart } = require("nodemon");
+
+const { validationResult } = require("express-validator");
 
 const transporter = nodemailer.createTransport(
   sendgridTransport({
@@ -27,6 +28,14 @@ exports.getLogin = (req, res, next) => {
 
 exports.postLogin = (req, res, next) => {
   const { email, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.render("auth/login", {
+      path: "/login",
+      pageTitle: "Login",
+      errorMessage: errors.array()[0].msg,
+    });
+  }
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
@@ -71,35 +80,36 @@ exports.getSignup = (req, res, next) => {
 };
 
 exports.postSignup = (req, res, next) => {
-  const { email, password, confirmPassword } = req.body;
-  User.findOne({ email: email })
-    .then((userDoc) => {
-      if (userDoc) {
-        req.flash("userExists", "User with that email already exists");
-        return res.redirect("/signup");
-      }
-      return bcrypt
-        .hash(password, 12)
-        .then((hashedPass) => {
-          const newUser = new User({
-            email: email,
-            password: hashedPass,
-            cart: { items: [] },
-          });
-          return newUser.save();
-        })
-        .then(() => {
-          res.redirect("/login");
-          return transporter.sendMail({
-            to: email,
-            from: "aokdirova@gmail.com",
-            subject: "Sign up successfull",
-            html: "<h1> You signed up for spending money on useless stuff. Congrats! </h1>",
-          });
-        })
-        .catch((err) => console.log("mailing service error", err));
+  const { email, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/signup", {
+      path: "/signup",
+      pageTitle: "Signup",
+      isLoggedIn: false,
+      errorMessage: errors.array()[0].msg,
+    });
+  }
+  bcrypt
+    .hash(password, 12)
+    .then((hashedPass) => {
+      const newUser = new User({
+        email: email,
+        password: hashedPass,
+        cart: { items: [] },
+      });
+      return newUser.save();
     })
-    .catch((err) => console.log(err));
+    .then(() => {
+      res.redirect("/login");
+      return transporter.sendMail({
+        to: email,
+        from: "aokdirova@gmail.com",
+        subject: "Sign up successfull",
+        html: "<h1> You signed up for spending money on useless stuff. Congrats! </h1>",
+      });
+    })
+    .catch((err) => console.log("mailing service error", err));
 };
 
 exports.getReset = (req, res, next) => {
