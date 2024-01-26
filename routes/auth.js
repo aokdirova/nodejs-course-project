@@ -23,16 +23,11 @@ router.post(
   check("email")
     .isEmail()
     .withMessage("Please use a valid email address")
-    .custom((value, { req }) => {
-      return User.findOne({ email: value }).then((userDoc) => {
-        if (!userDoc) {
-          return Promise.reject("Invalid Password or Email");
-        }
-      });
-    }),
-  body("password", "")
+    .normalizeEmail(),
+  body("password", "Please use a valid password")
     .isLength({ min: 5 })
-    .isAlphanumeric("Please use a valid password"),
+    .isAlphanumeric()
+    .trim(),
   loginController.postLogin
 );
 
@@ -54,19 +49,23 @@ router.post(
           );
         }
       });
-    }),
+    })
+    .normalizeEmail(),
   body(
     "password",
     "Please enter a password with numbers only and at least 5 characters"
   )
     .isLength({ min: 5 })
-    .isAlphanumeric(),
-  body("confirmPassword").custom((value, { req }) => {
-    if (value !== req.body.password) {
-      throw new Error("Passwords have to match");
-    }
-    return true;
-  }),
+    .isAlphanumeric()
+    .trim(),
+  body("confirmPassword")
+    .trim()
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Passwords have to match");
+      }
+      return true;
+    }),
   loginController.postSignup
 );
 

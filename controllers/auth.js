@@ -23,6 +23,8 @@ exports.getLogin = (req, res, next) => {
     path: "/login",
     pageTitle: "Login",
     errorMessage: errorMesssage.length > 0 ? errorMesssage[0] : null,
+    oldInput: { email: "", password: "" },
+    validationErrors: [],
   });
 };
 
@@ -34,13 +36,20 @@ exports.postLogin = (req, res, next) => {
       path: "/login",
       pageTitle: "Login",
       errorMessage: errors.array()[0].msg,
+      oldInput: { email: email, password: password },
+      validationErrors: errors.array(),
     });
   }
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
-        req.flash("loginError", "Invalid Password or Email");
-        return res.redirect("/login");
+        return res.status(422).render("auth/login", {
+          path: "/login",
+          pageTitle: "Login",
+          errorMessage: "Invalid email or password",
+          oldInput: { email: email, password: password },
+          validationErrors: [],
+        });
       }
       bcrypt
         .compare(password, user.password)
@@ -52,8 +61,13 @@ exports.postLogin = (req, res, next) => {
               res.redirect("/");
             });
           }
-          req.flash("loginError", "Invalid Password or Email");
-          res.redirect("/login");
+          return res.status(422).render("auth/login", {
+            path: "/login",
+            pageTitle: "Login",
+            errorMessage: "Invalid email or password",
+            oldInput: { email: email, password: password },
+            validationErrors: [],
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -81,12 +95,14 @@ exports.getSignup = (req, res, next) => {
       enteredPassword: "",
       enteredConfirmPassword: "",
     },
+    validationErrors: [],
   });
 };
 
 exports.postSignup = (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
   const errors = validationResult(req);
+  console.log(errors.array());
   if (!errors.isEmpty()) {
     return res.status(422).render("auth/signup", {
       path: "/signup",
@@ -98,6 +114,7 @@ exports.postSignup = (req, res, next) => {
         enteredPassword: password,
         enteredConfirmPassword: confirmPassword,
       },
+      validationErrors: errors.array(),
     });
   }
   bcrypt

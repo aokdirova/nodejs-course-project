@@ -9,6 +9,7 @@ exports.getAddProduct = (req, res, next) => {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
+    errorMessage: null,
   });
 };
 
@@ -28,7 +29,15 @@ exports.postAddProduct = (req, res, next) => {
       console.log("created a product");
       res.redirect("/admin/products");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      // res.status(500).render("admin/edit-product", {
+      //   pageTitle: "Add Product",
+      //   path: "/admin/add-product",
+      //   editing: false,
+      //   errorMessage: "Database failed, please try again",
+      // });
+      res.redirect("/500");
+    });
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -47,6 +56,7 @@ exports.getEditProduct = (req, res, next) => {
         path: "/admin/edit-product",
         editing: editMode,
         product: product,
+        errorMessage: null,
       });
     })
     .catch((err) => console.log(err));
