@@ -14,10 +14,10 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  const { title, imageUrl, price, description } = req.body;
+  const { title, image, price, description } = req.body;
   const product = new Product({
     title: title,
-    imageUrl: imageUrl,
+    imageUrl: image,
     price: price,
     description: description,
     userId: req.user,
