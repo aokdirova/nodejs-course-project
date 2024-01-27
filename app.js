@@ -2,6 +2,7 @@ const path = require("path");
 
 const express = require("express");
 
+const multer = require("multer");
 
 const bodyParser = require("body-parser");
 
@@ -21,6 +22,32 @@ const flash = require("connect-flash");
 
 const User = require("./mongoose-models/user");
 
+function getRandomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, getRandomNumber(0, 1001) + "-" + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  const mimeType = file.mimetype;
+  if (
+    mimeType === "image/png" ||
+    mimeType === "image/jpg" ||
+    mimeType === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 const app = express();
 const store = new MongoDBStore({
   uri: process.env.MONGO_DB_URL,
@@ -38,6 +65,9 @@ const loginroutes = require("./routes/auth");
 
 //middlewares
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
 
 app.use(cookieParser());
 
@@ -78,6 +108,8 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/images", express.static(path.join(__dirname, "images")));
+
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(loginroutes);

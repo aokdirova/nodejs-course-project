@@ -14,10 +14,22 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  const { title, image, price, description } = req.body;
+  const { title, price, description } = req.body;
+  const image = req.file;
+  if (!image) {
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Add product",
+      path: "/admin/add-product",
+      editing: false,
+      errorMessage:
+        "Attached File is not image. Only png, jpg, jpeg formats are allowed",
+    });
+  }
+  const imageUrl = "/" + image.path; //extract path on my operating system where i can fetch stored image
+
   const product = new Product({
     title: title,
-    imageUrl: image,
+    imageUrl: imageUrl,
     price: price,
     description: description,
     userId: req.user,
@@ -63,7 +75,8 @@ exports.getEditProduct = (req, res, next) => {
 };
 
 exports.postEditProduct = (req, res, next) => {
-  const { productId, title, imageUrl, price, description } = req.body;
+  const { productId, title, price, description } = req.body;
+  const image = req.file;
 
   Product.findById(productId)
     .then((product) => {
@@ -71,12 +84,14 @@ exports.postEditProduct = (req, res, next) => {
         return res.redirect("/");
       }
       product.title = title;
-      product.imageUrl = imageUrl;
+      if (image) {
+        product.imageUrl = image.path;
+      }
       product.description = description;
       product.price = price;
-      product.save().then(() => {
+      return product.save().then(() => {
         console.log("updated the product");
-        res.redirect("/products");
+        res.redirect("/admin/products");
       });
     })
 
