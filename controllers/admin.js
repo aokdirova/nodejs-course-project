@@ -1,6 +1,8 @@
 const mongodb = require("mongodb");
 const Product = require("../mongoose-models/product");
 
+const fileHelper = require("../util/file");
+
 exports.getAddProduct = (req, res, next) => {
   if (!req.session.isLoggedIn) {
     return res.redirect("/login");
@@ -85,6 +87,7 @@ exports.postEditProduct = (req, res, next) => {
       }
       product.title = title;
       if (image) {
+        fileHelper.deleteFile(product.imageUrl); //fire and forget approach. not async
         product.imageUrl = image.path;
       }
       product.description = description;
@@ -120,7 +123,14 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteOne({ _id: prodId, userId: req.user._id })
+  Product.findById(prodId)
+    .then((product) => {
+      if (!product) {
+        return next(new Error("Product not found"));
+      }
+      fileHelper.deleteFile(product.imageUrl);
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
+    })
     .then(() => {
       console.log("destroyed a product");
       res.redirect("/admin/products");
