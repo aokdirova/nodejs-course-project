@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 
 const PDFDocument = require("pdfkit");
+const product = require("../mongoose-models/product");
 
 const ITEMS_PER_PAGE = 2;
 
@@ -114,10 +115,22 @@ exports.postDeleteItem = (req, res, next) => {
 };
 
 exports.getCheckout = (req, res, next) => {
-  res.render("shop/checkout", {
-    path: "/checkout",
-    pageTitle: "Checkout",
-  });
+  req.user
+    .populate("cart.items.productId")
+    .then((user) => {
+      const products = user.cart.items;
+      let total = 0;
+      products.forEach((p) => {
+        total += p.quantity * p.productId.price;
+      });
+      res.render("shop/checkout", {
+        path: "/checkout",
+        pageTitle: "Checkout",
+        products: products,
+        totalSum: total,
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {

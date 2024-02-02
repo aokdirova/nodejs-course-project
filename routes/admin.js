@@ -20,6 +20,6 @@ router.get("/edit-product/:productID", isAuth, adminController.getEditProduct);
 
 router.post("/edit-product", isAuth, adminController.postEditProduct);
 
-router.post("/delete-product", isAuth, adminController.postDeleteProduct);
+router.post("/product/:productId", isAuth, adminController.postDeleteProduct);
 
 module.exports = router;
