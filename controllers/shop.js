@@ -5,7 +5,8 @@ const fs = require("fs");
 const path = require("path");
 
 const PDFDocument = require("pdfkit");
-const product = require("../mongoose-models/product");
+
+const stripe = require("stripe")(process.env.STRIPE_KEY);
 
 const ITEMS_PER_PAGE = 2;
 
@@ -115,19 +116,49 @@ exports.postDeleteItem = (req, res, next) => {
 };
 
 exports.getCheckout = (req, res, next) => {
+  let products;
+  let total = 0;
   req.user
     .populate("cart.items.productId")
     .then((user) => {
-      const products = user.cart.items;
-      let total = 0;
+      products = user.cart.items;
+      total = 0;
       products.forEach((p) => {
         total += p.quantity * p.productId.price;
       });
+      return stripe.checkout.sessions.create({
+        line_items: products.map((p) => {
+          return {
+            price_data: {
+              currency: "eur",
+
+              unit_amount: parseInt(Math.ceil(p.productId.price * 100)),
+
+              product_data: {
+                name: p.productId.title,
+
+                description: p.productId.description,
+              },
+            },
+
+            quantity: p.quantity,
+          };
+        }),
+
+        mode: "payment",
+
+        success_url: req.protocol + "://" + req.get("host") + "/checkout/success", // => http://localhost:3000,
+
+        cancel_url: req.protocol + "://" + req.get("host") + "/checkout/cancel",
+      });
+    })
+    .then((session) => {
       res.render("shop/checkout", {
         path: "/checkout",
         pageTitle: "Checkout",
         products: products,
         totalSum: total,
+        sessionId: session.id,
       });
     })
     .catch((err) => console.log(err));
@@ -146,7 +177,7 @@ exports.getOrders = (req, res, next) => {
     .catch((err) => console.log(err));
 };
 
-exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
   req.user
     .populate("cart.items.productId")
     .then((user) => {
