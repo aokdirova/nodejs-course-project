@@ -22,6 +22,10 @@ const flash = require("connect-flash");
 
 const User = require("./mongoose-models/user");
 
+const helmet = require("helmet");
+
+const compression = require("compression");
+
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
@@ -64,6 +68,10 @@ const shopRoutes = require("./routes/shop");
 const loginroutes = require("./routes/auth");
 
 //middlewares
+
+app.use(helmet());
+app.use(compression());
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
@@ -129,6 +137,6 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(process.env.MONGO_DB_URL)
   .then(() => {
-    app.listen(3004);
+    app.listen(process.env.PORT || 3004);
   })
   .catch((err) => console.log(err));
