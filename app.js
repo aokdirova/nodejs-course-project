@@ -2,6 +2,8 @@ const path = require("path");
 
 const fs = require("fs");
 
+const https = require("https");
+
 const express = require("express");
 
 const multer = require("multer");
@@ -63,6 +65,11 @@ const store = new MongoDBStore({
 });
 
 const csrfProtection = csrf();
+
+//read private key
+const privateKey = fs.readFileSync('server.key');
+const certificate = fs.readFileSync('server.cert');
+
 
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -147,6 +154,6 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(process.env.MONGO_DB_URL)
   .then(() => {
-    app.listen(process.env.PORT || 3004);
+    https.createServer({key: privateKey, cert: certificate},app).listen(process.env.PORT || 3004);
   })
   .catch((err) => console.log(err));
