@@ -67,9 +67,8 @@ const store = new MongoDBStore({
 const csrfProtection = csrf();
 
 //read private key
-const privateKey = fs.readFileSync('server.key');
-const certificate = fs.readFileSync('server.cert');
-
+const privateKey = fs.readFileSync("server.key");
+const certificate = fs.readFileSync("server.cert");
 
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -154,6 +153,7 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(process.env.MONGO_DB_URL)
   .then(() => {
-    https.createServer({key: privateKey, cert: certificate},app).listen(process.env.PORT || 3004);
+    // https.createServer({key: privateKey, cert: certificate},app).listen(process.env.PORT || 3004); //server in https mode but not needed manually since i am going to host it
+    app.listen(process.env.PORT || 3004);
   })
   .catch((err) => console.log(err));
