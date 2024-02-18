@@ -1,5 +1,7 @@
 const path = require("path");
 
+const fs = require("fs");
+
 const express = require("express");
 
 const multer = require("multer");
@@ -25,6 +27,8 @@ const User = require("./mongoose-models/user");
 const helmet = require("helmet");
 
 const compression = require("compression");
+
+const morgan = require("morgan");
 
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
@@ -67,10 +71,16 @@ const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const loginroutes = require("./routes/auth");
 
+const accesLogStream = fs.createWriteStream(
+  path.join(__dirname, "access.log"),
+  { flags: "a" }
+);
+
 //middlewares
 
 app.use(helmet());
 app.use(compression());
+app.use(morgan("combined", { stream: accesLogStream }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(
